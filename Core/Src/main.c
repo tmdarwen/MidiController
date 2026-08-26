@@ -93,7 +93,9 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   printf("==============================\r\n");
-  printf("MidiController %u.%u.%u.%u\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_BUILD);
+  printf("MidiController %u.%u.%u.%u\r\n", 
+    VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_BUILD);
+  printf("Build: %s %s\r\n", __DATE__, __TIME__);
   printf("==============================\r\n");
 
   /* USER CODE END 2 */
