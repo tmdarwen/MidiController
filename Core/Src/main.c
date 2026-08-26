@@ -104,8 +104,6 @@ int main(void)
   int encoderTurnsPrev[ENCODER_COUNT] = {0};
   while (1)
   {
-    /* USER CODE BEGIN 3 */
-
     // Get the encoder states from the shift register
     uint8_t encoderValues = Shift_Register_Read();
 
@@ -128,9 +126,11 @@ int main(void)
       HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
     ++i;
-    /* USER CODE END 3 */
   }
     /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  /* USER CODE END 3 */
 }
 
 /**
