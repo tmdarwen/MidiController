@@ -19,12 +19,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#include "version.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "encoders.h"
+#include "version.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,7 +91,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-
   /* USER CODE BEGIN 2 */
   printf("==============================\r\n");
   printf("MidiController %u.%u.%u.%u\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_BUILD);
@@ -130,10 +128,8 @@ int main(void)
       HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
     ++i;
-  }
   /* USER CODE END 3 */
-
-  /* USER CODE END WHILE */
+  }
 }
 
 /**
