@@ -59,12 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
-#define Shift_Register_QH_Pin GPIO_PIN_0
-#define Shift_Register_QH_GPIO_Port GPIOA
-#define Shift_Register_SHLD_Pin GPIO_PIN_1
+#define Shift_Register_SHLD_Pin GPIO_PIN_4
 #define Shift_Register_SHLD_GPIO_Port GPIOA
-#define Shift_Register_CLK_Pin GPIO_PIN_2
-#define Shift_Register_CLK_GPIO_Port GPIOA
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
