@@ -45,6 +45,7 @@
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
 
@@ -58,6 +59,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 static uint8_t Shift_Register_Read(void);
 /* USER CODE END PFP */
@@ -99,6 +101,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   MX_SPI1_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   printf("==============================\r\n");
   printf("MidiController %u.%u.%u.%u\r\n",
@@ -109,6 +112,9 @@ int main(void)
   // Start the LED blink timer; the LED is toggled from HAL_TIM_PeriodElapsedCallback
   HAL_TIM_Base_Start_IT(&htim3);
 
+  // Start the SPI timer for the encoder shift register; calls HAL_TIM_PeriodElapsedCallback
+  HAL_TIM_Base_Start_IT(&htim4);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,12 +122,6 @@ int main(void)
   int encoderTurnsPrev[ENCODER_COUNT] = {0};
   while (1)
   {
-    // Get the encoder states from the shift register
-    uint8_t encoderValues = Shift_Register_Read();
-
-    // Pass the encoder states to the Encoders module for processing
-    Encoders_Update(encoderValues);
-
     // Log any encoder turn changes
     for (int j = 0; j < ENCODER_COUNT; j++)
     {
@@ -268,6 +268,51 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 99;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 999;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -350,9 +395,19 @@ static void MX_GPIO_Init(void)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+
   if (htim->Instance == TIM3)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+  }
+
+  if (htim->Instance == TIM4)
+  {
+      // Get the encoder states from the shift register
+    uint8_t encoderValues = Shift_Register_Read();
+
+    // Pass the encoder states to the Encoders module for processing
+    Encoders_Update(encoderValues);
   }
 }
 
