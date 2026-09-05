@@ -22,6 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdbool.h>
+
 #include "encoders.h"
 #include "version.h"
 /* USER CODE END Includes */
@@ -49,6 +51,8 @@ TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
 
+bool g_debugLogging = false; // Debug logging initially turned off
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -61,6 +65,7 @@ static void MX_TIM3_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
+static void CheckDebugButton(void);
 static uint8_t Shift_Register_Read(void);
 /* USER CODE END PFP */
 
@@ -376,6 +381,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pin : PA4 */
   GPIO_InitStruct.Pin = GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -397,13 +408,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
   if (htim->Instance == TIM3)
-  {
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    {
+      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
   }
 
   if (htim->Instance == TIM4)
   {
-      // Get the encoder states from the shift register
+    // Check the debug button to toggle debug logging
+    CheckDebugButton();
+
+    // Get the encoder states from the shift register
     uint8_t encoderValues = Shift_Register_Read();
 
     // Pass the encoder states to the Encoders module for processing
@@ -428,9 +442,7 @@ int __io_putchar(int ch)
 static uint8_t Shift_Register_Read(void)
 {
   uint8_t value = 0;
-#ifdef LOG_SHOW_DECODER_BITS 
   static uint8_t prevValue = 0;
-#endif  
 
   /* Pulse SH/LD low to load the parallel inputs, then high to enable shifting */
   HAL_GPIO_WritePin(Shift_Register_SHLD_GPIO_Port, Shift_Register_SHLD_Pin, GPIO_PIN_RESET);
@@ -439,20 +451,37 @@ static uint8_t Shift_Register_Read(void)
   HAL_SPI_Receive(&hspi1, &value, 1, 1);
 
 
-#ifdef LOG_SHOW_DECODER_BITS 
-    if (value != prevValue)
-    {
-        for(uint8_t i = 0; i < 8; ++i)
-        {
-            printf("%d", (value >> (7 - i)) & 0x01);
-        }
-        printf("\r\n");
-    }
-    prevValue = value;
-#endif    
+  if (g_debugLogging && value != prevValue)
+  {
+      for(uint8_t i = 0; i < 8; ++i)
+      {
+          printf("%d", (value >> (7 - i)) & 0x01);
+      }
+      printf("\r\n");
+  }
+  prevValue = value;
 
   return value;
 }
+
+void CheckDebugButton()
+{
+    static uint32_t lastButtonCheckTickMs = 0;
+    static GPIO_PinState prevPa0State = GPIO_PIN_SET;
+    uint32_t currentTimeMs = HAL_GetTick();
+    if ((currentTimeMs - lastButtonCheckTickMs) > 50) // Debounce button press
+    {
+      // Check if the button on PA0 was pressed to toggle debug logging
+      GPIO_PinState pa0State = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+      if (pa0State == GPIO_PIN_RESET && pa0State != prevPa0State)
+      {
+        g_debugLogging = !g_debugLogging;
+        printf("Debug logging toggled %s\r\n", g_debugLogging ? "on" : "off");
+      }
+      prevPa0State = pa0State;
+      lastButtonCheckTickMs = currentTimeMs;
+    }
+  }
 
 /* USER CODE END 4 */
 
