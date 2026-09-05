@@ -51,9 +51,9 @@ TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
 
-bool g_debugLogging = false; // Debug logging initially turned off
-
 /* USER CODE BEGIN PV */
+
+bool g_debugLogging = false; // Debug logging initially turned off
 
 /* USER CODE END PV */
 
