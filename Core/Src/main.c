@@ -468,8 +468,16 @@ void CheckDebugButton()
 {
     static uint32_t lastButtonCheckTickMs = 0;
     static GPIO_PinState prevPa0State = GPIO_PIN_SET;
+
     uint32_t currentTimeMs = HAL_GetTick();
-    if ((currentTimeMs - lastButtonCheckTickMs) > 50) // Debounce button press
+
+    // Wait until at least 500 ms has passed since startup to avoid false button presses during initialization
+    if(currentTimeMs < 500)
+    {
+       return; 
+    }
+
+    if ((currentTimeMs - lastButtonCheckTickMs) > 100) // Debounce button press
     {
       // Check if the button on PA0 was pressed to toggle debug logging
       GPIO_PinState pa0State = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
