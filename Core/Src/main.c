@@ -66,7 +66,7 @@ static void MX_SPI1_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 static void CheckDebugButton(void);
-static uint8_t Shift_Register_Read(void);
+static uint16_t Shift_Register_Read(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -125,8 +125,13 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   int encoderTurnsPrev[ENCODER_COUNT] = {0};
+  bool encoderButtonStatesPrev[ENCODER_COUNT] = {false};
   while (1)
   {
+    // Wait until at least 500 ms has passed since startup to avoid false button presses during initialization
+    if(HAL_GetTick() < 500)
+      HAL_Delay(500); 
+
     // Log any encoder turn changes
     for (int j = 0; j < ENCODER_COUNT; j++)
     {
@@ -135,6 +140,13 @@ int main(void)
       {
         printf("E:%d T:%d\r\n", j, turns);
         encoderTurnsPrev[j] = turns;
+      }
+
+      bool buttonState = Encoders_GetButtonState(j);
+      if(buttonState != encoderButtonStatesPrev[j])
+      {
+        printf("E:%d B:%d\r\n", j, buttonState);
+        encoderButtonStatesPrev[j] = buttonState;
       }
     }
   }
@@ -418,7 +430,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     CheckDebugButton();
 
     // Get the encoder states from the shift register
-    uint8_t encoderValues = Shift_Register_Read();
+    uint16_t encoderValues = Shift_Register_Read();
 
     // Pass the encoder states to the Encoders module for processing
     Encoders_Update(encoderValues);
@@ -436,26 +448,27 @@ int __io_putchar(int ch)
 }
 
 /**
-  * @brief  Latches the SN74Shift_Register's parallel inputs and shifts out 8 bits via QH.
-  * @retval Parallel input state, MSB (H) first.
+  * @brief  Latches the SN74Shift_Register's parallel inputs and shifts out 16 bits via QH.
+  * @retval uint16_t Parallel input state, MSB (H) first.
   */
-static uint8_t Shift_Register_Read(void)
+static uint16_t Shift_Register_Read(void)
 {
-  uint8_t value = 0;
-  static uint8_t prevValue = 0;
+  uint16_t value = 0;
+  static uint16_t prevValue = 0;
 
   /* Pulse SH/LD low to load the parallel inputs, then high to enable shifting */
   HAL_GPIO_WritePin(Shift_Register_SHLD_GPIO_Port, Shift_Register_SHLD_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(Shift_Register_SHLD_GPIO_Port, Shift_Register_SHLD_Pin, GPIO_PIN_SET);
 
-  HAL_SPI_Receive(&hspi1, &value, 1, 1);
-
+  uint8_t buffer[2] = {0};
+  HAL_SPI_Receive(&hspi1, buffer, 2, 1);
+  value = (buffer[0] << 8) | buffer[1];
 
   if (g_debugLogging && value != prevValue)
   {
-      for(uint8_t i = 0; i < 8; ++i)
+      for(uint8_t i = 0; i < 16; ++i)
       {
-          printf("%d", (value >> (7 - i)) & 0x01);
+          printf("%d", (value >> (15 - i)) & 0x01);
       }
       printf("\r\n");
   }

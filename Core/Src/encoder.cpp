@@ -32,8 +32,13 @@ namespace
     const uint8_t A_HIGH_B_HIGH = 3;
 }
 
-void Encoder::Update(bool pinA, bool pinB)
+void Encoder::Update(bool pinA, bool pinB, bool button)
 {
+    // First save the current button state...
+    buttonState_ = button;  
+
+    // ...then handle the state machine for the encoder pins
+
     auto currentState  = static_cast<uint8_t>(pinA | (pinB << 1));
 
     // If no change, just return

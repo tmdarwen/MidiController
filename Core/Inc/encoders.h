@@ -25,10 +25,13 @@ void Encoders_Init();
 // |    3    |     A     |     G         |      6       |
 // |    3    |     B     |     H         |      7       |
 // ------------------------------------------------------
-void Encoders_Update(const uint8_t encoderPinValues);
+void Encoders_Update(const uint16_t encoderPinValues);
 
 // Returns the current position of the encoder
 int32_t Encoders_GetTurns(const uint8_t index);
+
+// Returns the current state of the encoder's push button
+bool Encoders_GetButtonState(const uint8_t index);
 
 #ifdef __cplusplus
 }

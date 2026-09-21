@@ -12,10 +12,13 @@ public:
     Encoder() = default;
 
     // Sends the current pin states to the encoder.
-    void Update(const bool pinA, const bool pinB);
+    void Update(const bool pinA, const bool pinB, const bool button);
 
     // Returns the current number of detent turns.
     int32_t GetTurns() const;
+
+    // Returns the current state of the encoder's push button
+    bool GetButtonState() const { return buttonState_; }
 
     // Resets the turn counter to zero.
     void Reset();
@@ -23,6 +26,7 @@ public:
 private:
     int32_t turns_ = 0;      // Tracks current number of detents turns
     int8_t  prevState_ = 0;  // Previous pin A and pin B states
+    bool    buttonState_ = false;  // Current button state
 
     enum DIRECTION
     {

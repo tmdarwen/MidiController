@@ -10,7 +10,7 @@ namespace
     {
         for (int i = 0; i < repeated; ++i)
         {
-            encoder.Update(pinA, pinB);
+            encoder.Update(pinA, pinB, false);
             printf("repeatCount=%d, pinA=%d, pinB=%d, turns=%d\n", i, pinA, pinB, encoder.GetTurns());
         }
     }
@@ -112,9 +112,9 @@ TEST(Encoder, BriefGlitchBelowDebounceThresholdIsIgnored)
     // A single stray reading (contact bounce) that reverts before holding
     // for repeated consecutive samples must not move the state
     // machine or the turn count.
-    encoder.Update(false, true); // one glitchy sample toward A=0,B=1
-    encoder.Update(true, true);  // bounces straight back to rest
-    encoder.Update(true, true);
+    encoder.Update(false, true, false); // one glitchy sample toward A=0,B=1
+    encoder.Update(true, true, false);  // bounces straight back to rest
+    encoder.Update(true, true, false);
     EXPECT_EQ(encoder.GetTurns(), 0);
 
     // The encoder should still be able to complete a clean detent afterward.
